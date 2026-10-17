@@ -46,7 +46,7 @@ func handleConnection(connection net.Conn){
 
 		response := fmt.Sprintf("Servidor: Mensagem %s recebida com sucesso", clientMsg)
 
-		_, err := connection.Write([]byte(response))
+		_, err := connection.Write([]byte(response + "\n"))
 
 		if err != nil {
 			fmt.Println("Erro ao enviar mensagem ao cliente")
