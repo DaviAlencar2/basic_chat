@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"basic_chat/models"
 )
 
 func main(){
@@ -18,11 +19,23 @@ func main(){
 
 	defer serverConnection.Close()
 
+	fmt.Println("Escreva seu nome:")
+
+	var username string
+	userNameInput := bufio.NewScanner(os.Stdin)
+
+	if userNameInput.Scan(){
+		username = userNameInput.Text()
+	}
+
 	go func() {
 		serverScanner := bufio.NewScanner(serverConnection)
 
 		for serverScanner.Scan(){
-			fmt.Println(serverScanner.Text())
+			text := serverScanner.Text()
+			msg, _ := models.FromJsonString(text)
+
+			fmt.Printf("[%s]: %s", msg.SenderName, msg.Message)
 		}
 	}()
 	
@@ -36,7 +49,9 @@ func main(){
 
 		msgText := scannerInput.Text()
 
-		_, err := serverConnection.Write([]byte (msgText + "\n"))
+		message := models.Message{Message: msgText, SenderName: username}
+
+		_, err := serverConnection.Write([]byte (message.ToJsonString()))
 
 		if err != nil {
 			fmt.Println("erro ao enviar mensagem")

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"basic_chat/models"
 )
 
 func main() {
@@ -42,11 +43,19 @@ func handleConnection(connection net.Conn){
 
 	for scanner.Scan(){
 		clientMsg := scanner.Text()
+		msg, err :=  models.FromJsonString(clientMsg)
+
+		fmt.Printf("Mensagem recebida do user [%s] - Mensagem [%s]", msg.SenderName, msg.Message)
+
+		if err != nil {
+			return
+		}
+
 		fmt.Println("Mensagem Recebida:" + clientMsg)
 
 		response := fmt.Sprintf("Servidor: Mensagem %s recebida com sucesso", clientMsg)
 
-		_, err := connection.Write([]byte(response + "\n"))
+		_, err = connection.Write([]byte(msg.ToJsonString()))
 
 		if err != nil {
 			fmt.Println("Erro ao enviar mensagem ao cliente")
