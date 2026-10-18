@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"basic_chat/models"
 )
 
 func main() {
@@ -18,6 +19,10 @@ func main() {
 
 	defer listener.Close()
 
+	chatGroup := &models.ChatGroup{
+		Connections:[]net.Conn{},
+	}
+
 	fmt.Println("Servidor rodando na 8080")
 
 	for {
@@ -28,13 +33,14 @@ func main() {
 			return
 		}
 
-		go handleConnection(connection)
+		chatGroup.Connections = append(chatGroup.Connections, connection)
+		go handleConnection(connection, chatGroup)
 
 	}
 }
 
 
-func handleConnection(connection net.Conn){
+func handleConnection(connection net.Conn, chat *models.ChatGroup){
 	defer connection.Close()
 
 	fmt.Println("Novo cliente conectado")
@@ -43,7 +49,20 @@ func handleConnection(connection net.Conn){
 
 	for scanner.Scan(){
 		clientMsg := scanner.Text()
+		message, err := models.FromJsonString(clientMsg)
+
+		if err != nil{
+			return
+		}
 	
 		fmt.Println("Mensagem Recebida:" + clientMsg)
+
+		for _, userConn := range chat.Connections {
+			if userConn == connection {
+				continue
+			}
+			
+			_, err = userConn.Write([]byte(message.ToJsonString()))
+		}
 	}
 }

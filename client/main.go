@@ -27,16 +27,24 @@ func main(){
 	defer serverConnection.Close()
 
 
-	fmt.Print("Escreva algo:")
 	scannerInput := bufio.NewScanner(os.Stdin)
 	
+
+	go func () {
+		serverScanner := bufio.NewScanner(serverConnection)
+		for serverScanner.Scan() {
+			text := serverScanner.Text()
+			message, _ := models.FromJsonString(text)
+			fmt.Println("\n" + "[" + message.SenderName + "]: " + message.Message)
+		}
+	}()
+
 
 	for {
 		if !scannerInput.Scan(){
 			break
 		}
 
-		fmt.Print("Escreva algo:")
 		msgText := scannerInput.Text()
 
 		message := models.Message{Message: msgText, SenderName: username}
