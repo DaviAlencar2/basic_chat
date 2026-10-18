@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"basic_chat/models"
+	"github.com/chzyer/readline"
 )
 
 func main(){
@@ -27,7 +28,12 @@ func main(){
 	defer serverConnection.Close()
 
 
-	scannerInput := bufio.NewScanner(os.Stdin)
+	terminal, err := readline.New(">")
+	if err != nil {
+		fmt.Println("Erro ao preparar o terminal:" + err.Error())
+		return
+	}
+	defer terminal.Close()
 	
 
 	go func () {
@@ -35,24 +41,30 @@ func main(){
 		for serverScanner.Scan() {
 			text := serverScanner.Text()
 			message, _ := models.FromJsonString(text)
-			fmt.Println("\n" + "[" + message.SenderName + "]: " + message.Message)
+			fmt.Fprintf(
+				terminal.Stdout(),
+				"[%s]: %s\n",
+				message.SenderName,
+				message.Message,
+			)
 		}
 	}()
 
 
 	for {
-		if !scannerInput.Scan(){
+	
+		msgText, err  := terminal.Readline()
+
+		if err != nil {
 			break
 		}
 
-		msgText := scannerInput.Text()
-
 		message := models.Message{Message: msgText, SenderName: username}
 
-		_, err := serverConnection.Write([]byte (message.ToJsonString()))
+		_, err = serverConnection.Write([]byte (message.ToJsonString()))
 
 		if err != nil {
-			fmt.Println("erro ao enviar mensagem")
+			fmt.Fprintln(terminal.Stdout(), "Erro ao enviar mensagem")
 			break
 		}
 	}
