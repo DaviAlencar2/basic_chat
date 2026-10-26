@@ -10,13 +10,25 @@ import (
 )
 
 func main(){
-	fmt.Println("Bem vindo!")
 	fmt.Print("Escreva seu nome:")
+	
 	var username string
+	var chatGroupName string
+
 	userNameInput := bufio.NewScanner(os.Stdin)
+	
+	
 	if userNameInput.Scan(){
 		username = userNameInput.Text()
 	}
+
+	fmt.Print("Escreva o nome do chat:")
+	chatGroupNameInput := bufio.NewScanner(os.Stdin)
+	
+	if chatGroupNameInput.Scan(){
+		chatGroupName = chatGroupNameInput.Text()
+	}
+
 
 	serverConnection, err := net.Dial("tcp", "localhost:8080")
 	if err != nil {
@@ -59,7 +71,7 @@ func main(){
 			break
 		}
 
-		message := models.Message{Message: msgText, SenderName: username}
+		message := models.Message{Message: msgText, SenderName: username, ChatGroupName: chatGroupName}
 
 		_, err = serverConnection.Write([]byte (message.ToJsonString()))
 
