@@ -9,6 +9,7 @@ import (
 type Message struct {
 	SenderName string
 	Message    string
+	ChatGroupName string
 }
 
 
